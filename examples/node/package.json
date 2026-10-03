@@ -1,0 +1,1 @@
+{"name":"devroom-node-examples","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test server.test.mjs","streams":"node streams.mjs","events":"node events.mjs"},"engines":{"node":">=22.13.0"}}

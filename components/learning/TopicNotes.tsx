@@ -1,0 +1,12 @@
+'use client';
+import {useEffect,useState} from 'react';
+import {Save,FilePenLine} from 'lucide-react';
+interface SavedNote {text:string;savedAt:string}
+export default function TopicNotes({lessonId,title}:{lessonId:string;title:string}){
+ const [text,setText]=useState(''),[saved,setSaved]=useState<SavedNote|null>(null),[status,setStatus]=useState(''),[ready,setReady]=useState(false);
+ const key='devroom:note:'+lessonId,draftKey='devroom:note-draft:'+lessonId;
+ useEffect(()=>{try{const raw=localStorage.getItem(key);let note:SavedNote|null=null;if(raw){const value=JSON.parse(raw);if(typeof value.text==='string'&&typeof value.savedAt==='string')note=value;}setSaved(note);const draft=localStorage.getItem(draftKey);setText(draft??note?.text??'');setStatus(draft!==null&&draft!==note?.text?'Your unsaved draft has been restored.':'');}catch{setStatus('Saved notes could not be read. Browser storage may be unavailable.');}setReady(true);},[key,draftKey]);
+ function edit(value:string){setText(value);try{localStorage.setItem(draftKey,value);setStatus('Draft kept on this device. Click Save explanation to save your final notes.');}catch{setStatus('Draft could not be stored. Keep this page open and copy your text before leaving.');}}
+ function save(){const note={text,savedAt:new Date().toISOString()};try{localStorage.setItem(key,JSON.stringify(note));setSaved(note);setStatus('Explanation saved on this device.');try{localStorage.removeItem(draftKey);}catch{}}catch{setStatus('Save failed. Browser storage is unavailable or full. Copy your explanation before leaving.');}}
+ return <section className="topic-notes"><div className="notes-heading"><FilePenLine size={22}/><div><h3>My explanation</h3><p>Write “{title}” in your own words.</p></div></div><label htmlFor={'note-'+lessonId}>Your notes, examples and interview answer</label><textarea id={'note-'+lessonId} disabled={!ready} value={text} onChange={e=>edit(e.target.value)} placeholder="Explain the concept simply. Add an example, code, or points you want to remember…" rows={14}/><div className="notes-actions"><button className="save-notes-button" disabled={!ready} onClick={save}><Save size={16}/>Save explanation</button><span>{saved?'Last saved '+new Date(saved.savedAt).toLocaleString():'Not saved yet'}{saved&&saved.text!==text?' · Unsaved changes':''}</span></div><p className="notes-status" role="status">{status}</p><p className="notes-storage">Notes are separate for every topic. They stay in this browser on this device; clearing browser data removes them.</p></section>;
+}
